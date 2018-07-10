@@ -11,8 +11,8 @@ namespace mluvii.ApiIntegrationSample.Web
 {
     public class WebhookMiddleware
     {
-        private const string User = "csharp";
-        private const string Password = "isawesome";
+        public const string User = "csharp";
+        public const string Password = "isawesome";
 
         private readonly WebhookEventProcessor webhookEventProcessor;
 

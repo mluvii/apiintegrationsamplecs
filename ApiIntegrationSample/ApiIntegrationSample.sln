@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mluvii.ApiIntegrationSample.Web", "mluvii.ApiIntegrationSample.Web\mluvii.ApiIntegrationSample.Web.csproj", "{CC2F7845-D72C-43A6-814B-F8DF83746D57}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mluvii.PublicApi", "..\publicapi\src\mluvii.PublicApi\mluvii.PublicApi.csproj", "{8BA5799B-7F82-4533-9736-57E1D8BE54B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{CC2F7845-D72C-43A6-814B-F8DF83746D57}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC2F7845-D72C-43A6-814B-F8DF83746D57}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC2F7845-D72C-43A6-814B-F8DF83746D57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BA5799B-7F82-4533-9736-57E1D8BE54B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BA5799B-7F82-4533-9736-57E1D8BE54B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BA5799B-7F82-4533-9736-57E1D8BE54B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BA5799B-7F82-4533-9736-57E1D8BE54B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

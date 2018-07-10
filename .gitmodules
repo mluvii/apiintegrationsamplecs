@@ -1,0 +1,3 @@
+[submodule "publicapi"]
+	path = publicapi
+	url = https://github.com/mluvii/publicapi-csharp
