@@ -8,7 +8,7 @@
 .vs/
 
 *.log
-contenModel.xml
+contentModel.xml
 workspace.xml
 dataSources.ids
 dataSources.local.xml
