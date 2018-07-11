@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using mluvii.PublicApi.Api;
@@ -68,7 +69,7 @@ namespace mluvii.ApiIntegrationSample.Web
 
             var configuration = new Configuration
             {
-                BasePath = "todo"
+                BasePath = serviceOptions.Value.MluviiUrl
             };
 
             configuration.ApiKey.Add("Authorization", token);
@@ -99,19 +100,18 @@ namespace mluvii.ApiIntegrationSample.Web
             };
 
             var api = await GetApi();
+            var webhookModel = new PublicApiWebhookModelsWebhookAddEditModel(eventTypes, webhookUriBuilder.Uri.ToString());
 
             try
             {
-                await api.ApiV1WebhooksPostAsync(new PublicApiWebhookModelsWebhookAddEditModel
-                {
-                    CallbackUrl = webhookUriBuilder.Uri.ToString(),
-                    EventTypes = eventTypes
-                });
+                var ee = await api.ApiV1WebhooksPostAsync(webhookModel);
             }
             catch (ApiException apiException)
             {
-                var x = apiException.ErrorCode;
-                // TODO ...
+                if (apiException.ErrorCode == (int) HttpStatusCode.Conflict && int.TryParse((string)apiException.ErrorContent, out var existingWebhookId))
+                {
+                    await api.ApiV1WebhooksByIdPutAsync(existingWebhookId, webhookModel);
+                }
             }
         }
     }

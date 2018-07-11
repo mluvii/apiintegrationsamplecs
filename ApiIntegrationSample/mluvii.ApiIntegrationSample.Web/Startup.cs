@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -34,7 +35,7 @@ namespace mluvii.ApiIntegrationSample.Web
             services.AddSingleton(sp => new MluviiClient(sp.GetService<IOptions<ServiceOptions>>()));
         }
 
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, IApplicationLifetime applicationLifetime)
         {
             app.Map("/mluviiwebhook", map =>
             {
@@ -43,7 +44,15 @@ namespace mluvii.ApiIntegrationSample.Web
 
             Task.Run(async () =>
             {
-                await app.ApplicationServices.GetService<MluviiClient>().SubscribeToEvents();
+                try
+                {
+                    await app.ApplicationServices.GetService<MluviiClient>().SubscribeToEvents();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    applicationLifetime.StopApplication();
+                }
             });
         }
     }

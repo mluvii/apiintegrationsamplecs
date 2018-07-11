@@ -7,5 +7,7 @@
         public string AuthKey { get; set; }
 
         public string ExternalUrl { get; set; }
+
+        public string MluviiUrl { get; set; }
     }
 }
