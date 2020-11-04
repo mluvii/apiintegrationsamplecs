@@ -92,11 +92,11 @@ namespace mluvii.ApiIntegrationSample.Web
                 Path = "/mluviiwebhook"
             };
 
-            var eventTypes = new List<PublicApiWebhookModelsWebhookAddEditModel.EventTypesEnum>
+            var eventTypes = new List<MluviiContractsEnumsWebhookEventType>
             {
-                PublicApiWebhookModelsWebhookAddEditModel.EventTypesEnum.SessionStarted,
-                PublicApiWebhookModelsWebhookAddEditModel.EventTypesEnum.SessionForwarded,
-                PublicApiWebhookModelsWebhookAddEditModel.EventTypesEnum.SessionEnded
+                MluviiContractsEnumsWebhookEventType.SessionStarted,
+                MluviiContractsEnumsWebhookEventType.SessionForwarded,
+                MluviiContractsEnumsWebhookEventType.SessionEnded
             };
 
             var api = await GetApi();
@@ -110,7 +110,7 @@ namespace mluvii.ApiIntegrationSample.Web
             {
                 if (apiException.ErrorCode == (int) HttpStatusCode.Conflict && int.TryParse((string)apiException.ErrorContent, out var existingWebhookId))
                 {
-                    await api.ApiV1WebhooksByIdPutAsync(existingWebhookId, webhookModel);
+                    await api.ApiV1WebhooksIdPutAsync(existingWebhookId, webhookModel);
                 }
             }
         }
