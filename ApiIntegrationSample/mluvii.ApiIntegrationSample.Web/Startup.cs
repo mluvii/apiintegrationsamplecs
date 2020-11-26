@@ -31,9 +31,9 @@ namespace mluvii.ApiIntegrationSample.Web
 
             services.Configure<ServiceOptions>(configuration.GetSection("Service"));
 
-            services.AddSingleton(sp => new WebhookEventProcessor());
-
             services.AddSingleton(sp => new MluviiClient(sp.GetService<IOptions<ServiceOptions>>()));
+
+            services.AddSingleton(sp => new WebhookEventProcessor(sp.GetService<MluviiClient>()));
         }
 
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime)
@@ -48,6 +48,8 @@ namespace mluvii.ApiIntegrationSample.Web
                 try
                 {
                     await app.ApplicationServices.GetService<MluviiClient>().SubscribeToEvents();
+                    var sessions = await app.ApplicationServices.GetService<MluviiClient>().ListClosedSessions();
+                    // TODO: do something with the results
                 }
                 catch (Exception e)
                 {

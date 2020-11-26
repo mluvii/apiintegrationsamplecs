@@ -4,7 +4,10 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
+using mluvii.ApiIntegrationSample.Web.Serialization;
+using mluvii.ApiModels.Sessions;
 using mluvii.ApiModels.Webhooks;
 using Newtonsoft.Json;
 
@@ -113,6 +116,22 @@ namespace mluvii.ApiIntegrationSample.Web
             }
 
             response.EnsureSuccessStatusCode();
+        }
+
+        public async Task<ICollection<SessionModel>> ListClosedSessions()
+        {
+            apiHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await tokenHolder.GetToken());
+
+            var query = new Dictionary<string, string>()
+            {
+                {"Status", nameof(SessionStatus.CLOSED)},
+                {"Created.Min", DateTime.Today.ToString("yyyy-MM-dd")},
+                {"limit", "1000"}
+            };
+
+            var response = await apiHttpClient.GetStringAsync(QueryHelpers.AddQueryString("/api/v1/Sessions", query));
+
+            return JsonConvert.DeserializeObject<SessionModel[]>(response, MluviiApiJsonSerializerSettings.Instance);
         }
     }
 }

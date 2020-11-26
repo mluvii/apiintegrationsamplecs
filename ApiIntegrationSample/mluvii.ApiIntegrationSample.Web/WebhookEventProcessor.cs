@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using mluvii.ApiIntegrationSample.Web.Payloads;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -10,6 +11,13 @@ namespace mluvii.ApiIntegrationSample.Web
 {
     public class WebhookEventProcessor
     {
+        private readonly MluviiClient mluviiClient;
+
+        public WebhookEventProcessor(MluviiClient mluviiClient)
+        {
+            this.mluviiClient = mluviiClient;
+        }
+
         public void ParseAndProcessEvent(string text)
         {
             ThreadPool.QueueUserWorkItem(ParseAndProcessWorkItem, text, true);
@@ -68,8 +76,15 @@ namespace mluvii.ApiIntegrationSample.Web
                     break;
                 case SessionEndedPayload sessionEnded:
                     Trace.WriteLine($"Session {sessionEnded.Id} has ended at {sessionEnded.Ended}");
+                    Task.Run(ListClosedSessions);
                     break;
             }
+        }
+
+        private async Task ListClosedSessions()
+        {
+            var sessions = await mluviiClient.ListClosedSessions();
+            // TODO: do something with the results
         }
     }
 }
