@@ -1,3 +1,3 @@
-[submodule "publicapi"]
-	path = publicapi
-	url = https://github.com/mluvii/publicapi-csharp
+[submodule "mluvii.ApiModels"]
+	path = mluvii.ApiModels
+	url = https://github.com/mluvii/mluvii.ApiModels.git

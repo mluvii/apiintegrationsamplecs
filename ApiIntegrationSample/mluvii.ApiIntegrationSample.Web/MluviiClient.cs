@@ -2,18 +2,16 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using mluvii.PublicApi.Api;
-using mluvii.PublicApi.Client;
-using mluvii.PublicApi.Model;
 using Microsoft.Extensions.Options;
+using mluvii.ApiModels.Webhooks;
+using Newtonsoft.Json;
 
 namespace mluvii.ApiIntegrationSample.Web
 {
     public class MluviiClient
     {
-        private static readonly HttpClient authHttpClient = new HttpClient();
-
         private class TokenHolder
         {
             private string token;
@@ -39,47 +37,51 @@ namespace mluvii.ApiIntegrationSample.Web
             }
         }
 
-        private readonly TokenHolder tokenHolder;
         private readonly IOptions<ServiceOptions> serviceOptions;
+        private readonly HttpClient authHttpClient;
+        private readonly HttpClient apiHttpClient;
+        private readonly TokenHolder tokenHolder;
 
         public MluviiClient(IOptions<ServiceOptions> serviceOptions)
         {
             this.serviceOptions = serviceOptions;
 
+            authHttpClient = new HttpClient
+            {
+                BaseAddress = new Uri($"https://{serviceOptions.Value.MluviiDomain}")
+            };
+
+            apiHttpClient = new HttpClient
+            {
+                BaseAddress = new Uri($"https://{serviceOptions.Value.MluviiDomain}"),
+                DefaultRequestHeaders = { }
+            };
+
             tokenHolder = new TokenHolder(async () =>
             {
-                var post = new List<KeyValuePair<string, string>>
+                var post = new Dictionary<string, string>
                 {
-                    new KeyValuePair<string, string>("authKey", serviceOptions.Value.AuthKey)
+                    {"response_type", "token"},
+                    {"grant_type", "client_credentials"},
+                    {"client_id", serviceOptions.Value.ClientId},
+                    {"client_secret", serviceOptions.Value.ClientSecret},
                 };
 
                 using (var formContent = new FormUrlEncodedContent(post))
                 {
-                    var resp = await authHttpClient.PostAsync(serviceOptions.Value.AuthUrl, formContent);
+                    var resp = await authHttpClient.PostAsync("/login/connect/token", formContent);
                     resp.EnsureSuccessStatusCode();
 
-                    return await resp.Content.ReadAsStringAsync();
+                    var reply = JsonConvert.DeserializeAnonymousType(await resp.Content.ReadAsStringAsync(), new { access_token = string.Empty });
+                    return reply.access_token;
                 }
             });
         }
 
-        private async Task<WebhooksApi> GetApi()
-        {
-            var token = await tokenHolder.GetToken();
-
-            var configuration = new Configuration
-            {
-                BasePath = serviceOptions.Value.MluviiUrl
-            };
-
-            configuration.ApiKey.Add("Authorization", token);
-            configuration.ApiKeyPrefix.Add("Authorization", "Bearer");
-
-            return new WebhooksApi(configuration);
-        }
-
         public async Task SubscribeToEvents()
         {
+            apiHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await tokenHolder.GetToken());
+
             var externalUri = new Uri(serviceOptions.Value.ExternalUrl);
 
             var webhookUriBuilder = new UriBuilder
@@ -92,27 +94,25 @@ namespace mluvii.ApiIntegrationSample.Web
                 Path = "/mluviiwebhook"
             };
 
-            var eventTypes = new List<MluviiContractsEnumsWebhookEventType>
+            var model = new WebhookAddEditModel
             {
-                MluviiContractsEnumsWebhookEventType.SessionStarted,
-                MluviiContractsEnumsWebhookEventType.SessionForwarded,
-                MluviiContractsEnumsWebhookEventType.SessionEnded
+                EventTypes = new[]
+                {
+                    WebhookEventType.SessionStarted,
+                    WebhookEventType.SessionForwarded,
+                    WebhookEventType.SessionEnded
+                },
+                CallbackUrl = webhookUriBuilder.Uri.ToString()
             };
 
-            var api = await GetApi();
-            var webhookModel = new PublicApiWebhookModelsWebhookAddEditModel(eventTypes, webhookUriBuilder.Uri.ToString());
+            var response = await apiHttpClient.PostAsJsonAsync("/api/v1/Webhooks", model);
+            if (response.StatusCode == HttpStatusCode.Conflict &&
+                int.TryParse(await response.Content.ReadAsStringAsync(), out var existingWebhookId))
+            {
+                response = await apiHttpClient.PutAsJsonAsync($"/api/v1/Webhooks/{existingWebhookId}", model);
+            }
 
-            try
-            {
-                var ee = await api.ApiV1WebhooksPostAsync(webhookModel);
-            }
-            catch (ApiException apiException)
-            {
-                if (apiException.ErrorCode == (int) HttpStatusCode.Conflict && int.TryParse((string)apiException.ErrorContent, out var existingWebhookId))
-                {
-                    await api.ApiV1WebhooksIdPutAsync(existingWebhookId, webhookModel);
-                }
-            }
+            response.EnsureSuccessStatusCode();
         }
     }
 }

@@ -2,12 +2,12 @@
 {
     public class ServiceOptions
     {
-        public string AuthUrl { get; set; }
+        public string MluviiDomain { get; set; }
 
-        public string AuthKey { get; set; }
+        public string ClientId { get; set; }
+
+        public string ClientSecret { get; set; }
 
         public string ExternalUrl { get; set; }
-
-        public string MluviiUrl { get; set; }
     }
 }

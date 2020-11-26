@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace mluvii.ApiIntegrationSample.Web
@@ -12,7 +13,7 @@ namespace mluvii.ApiIntegrationSample.Web
     {
         private readonly IConfiguration configuration;
 
-        public Startup(IHostingEnvironment env)
+        public Startup(IWebHostEnvironment env)
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
@@ -35,7 +36,7 @@ namespace mluvii.ApiIntegrationSample.Web
             services.AddSingleton(sp => new MluviiClient(sp.GetService<IOptions<ServiceOptions>>()));
         }
 
-        public void Configure(IApplicationBuilder app, IApplicationLifetime applicationLifetime)
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime)
         {
             app.Map("/mluviiwebhook", map =>
             {
